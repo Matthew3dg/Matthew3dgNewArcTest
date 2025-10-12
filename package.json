@@ -9,6 +9,16 @@
     "start": "react-native start",
     "test": "jest"
   },
+  "codegenConfig": {
+    "name": "NativeCalculatorSpec",
+    "type": "modules",
+    "jsSrcsDir": "specs",
+    "ios": {
+      "modulesProvider": {
+        "NativeCalculator": "RCTNativeCalculator"
+      }
+    }
+  },
   "dependencies": {
     "react": "19.1.1",
     "react-native": "0.82.0",
