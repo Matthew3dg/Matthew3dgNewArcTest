@@ -7,7 +7,6 @@
 
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -22,12 +21,18 @@ import {
 // Импортируем наш нативный модуль
 import NativeCalculator from './specs/NativeCalculator';
 
+// Импортируем оптимизированный WebView
+import OptimizedWebView from './src/components/OptimizedWebView';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [num1, setNum1] = useState('5');
   // const [num2, setNum2] = useState('3');
   const [result, setResult] = useState('');
   const [moduleInfo, setModuleInfo] = useState('');
+  const [showWebView, setShowWebView] = useState(false);
+  const [webViewUrl, setWebViewUrl] = useState('https://reactnative.dev');
 
   // Тест метода add (теперь асинхронный)
   // const testAdd = async () => {
@@ -95,37 +100,48 @@ function App() {
     }
   };
 
-  return (
-    <SafeAreaView
-      style={[styles.container, isDarkMode && styles.darkContainer]}
-    >
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={[styles.title, isDarkMode && styles.darkText]}>
-            🧮 Native Calculator
-          </Text>
-          <Text style={[styles.subtitle, isDarkMode && styles.darkText]}>
-            Тестирование Turbo Native Module
-          </Text>
-        </View>
+  // Функции для работы с WebView
+  const openWebView = (url: string) => {
+    setWebViewUrl(url);
+    setShowWebView(true);
+  };
 
-        {/* Поля ввода */}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            {/* <Text style={[styles.label, isDarkMode && styles.darkText]}>
+  const closeWebView = () => {
+    setShowWebView(false);
+  };
+
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView
+        style={[styles.container, isDarkMode && styles.darkContainer]}
+      >
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          <View style={styles.header}>
+            <Text style={[styles.title, isDarkMode && styles.darkText]}>
+              🧮 Native Calculator
+            </Text>
+            <Text style={[styles.subtitle, isDarkMode && styles.darkText]}>
+              Тестирование Turbo Native Module
+            </Text>
+          </View>
+
+          {/* Поля ввода */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              {/* <Text style={[styles.label, isDarkMode && styles.darkText]}>
               Число 1:
             </Text> */}
-            <TextInput
-              style={[styles.input, isDarkMode && styles.darkInput]}
-              value={num1}
-              onChangeText={setNum1}
-              keyboardType="numeric"
-              placeholder="Введите число"
-              placeholderTextColor={isDarkMode ? '#666' : '#999'}
-            />
-          </View>
-          {/* <View style={styles.inputWrapper}>
+              <TextInput
+                style={[styles.input, isDarkMode && styles.darkInput]}
+                value={num1}
+                onChangeText={setNum1}
+                keyboardType="numeric"
+                placeholder="Введите число"
+                placeholderTextColor={isDarkMode ? '#666' : '#999'}
+              />
+            </View>
+            {/* <View style={styles.inputWrapper}>
             <Text style={[styles.label, isDarkMode && styles.darkText]}>
               Число 2:
             </Text>
@@ -138,11 +154,11 @@ function App() {
               placeholderTextColor={isDarkMode ? '#666' : '#999'}
             />
           </View> */}
-        </View>
+          </View>
 
-        {/* Кнопки операций */}
-        <View style={styles.buttonContainer}>
-          {/* <TouchableOpacity style={styles.button} onPress={testAdd}>
+          {/* Кнопки операций */}
+          <View style={styles.buttonContainer}>
+            {/* <TouchableOpacity style={styles.button} onPress={testAdd}>
             <Text style={styles.buttonText}>➕ Сложение (async)</Text>
           </TouchableOpacity>
 
@@ -150,83 +166,150 @@ function App() {
             <Text style={styles.buttonText}>✖️ Умножение (async)</Text>
           </TouchableOpacity> */}
 
-          <TouchableOpacity
-            style={[styles.button, styles.asyncButton]}
-            onPress={testFactorial}
-          >
-            <Text style={styles.buttonText}>🔢 Факториал (async/Promise)</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.asyncButton]}
+              onPress={testFactorial}
+            >
+              <Text style={styles.buttonText}>
+                🔢 Факториал (async/Promise)
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.callbackButton]}
-            onPress={testSquareRoot}
-          >
-            <Text style={styles.buttonText}>
-              √ Квадратный корень (callback)
+            <TouchableOpacity
+              style={[styles.button, styles.callbackButton]}
+              onPress={testSquareRoot}
+            >
+              <Text style={styles.buttonText}>
+                √ Квадратный корень (callback)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.infoButton]}
+              onPress={testModuleInfo}
+            >
+              <Text style={styles.buttonText}>ℹ️ Информация о модуле</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* WebView кнопки */}
+          <View style={styles.webViewSection}>
+            <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>
+              🌐 WebView Демонстрация
             </Text>
-          </TouchableOpacity>
+            <View style={styles.webViewButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.webViewButton]}
+                onPress={() => openWebView('https://reactnative.dev')}
+              >
+                <Text style={styles.buttonText}>📱 React Native Docs</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.infoButton]}
-            onPress={testModuleInfo}
-          >
-            <Text style={styles.buttonText}>ℹ️ Информация о модуле</Text>
-          </TouchableOpacity>
-        </View>
+              <TouchableOpacity
+                style={[styles.button, styles.webViewButton]}
+                onPress={() => openWebView('https://github.com')}
+              >
+                <Text style={styles.buttonText}>🐙 GitHub</Text>
+              </TouchableOpacity>
 
-        {/* Результат */}
-        {result !== '' && (
-          <View
-            style={[
-              styles.resultContainer,
-              isDarkMode && styles.darkResultContainer,
-            ]}
-          >
-            <Text style={[styles.resultLabel, isDarkMode && styles.darkText]}>
-              Результат:
+              <TouchableOpacity
+                style={[styles.button, styles.webViewButton]}
+                onPress={() => openWebView('https://www.google.com')}
+              >
+                <Text style={styles.buttonText}>🔍 Google</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Результат */}
+          {result !== '' && (
+            <View
+              style={[
+                styles.resultContainer,
+                isDarkMode && styles.darkResultContainer,
+              ]}
+            >
+              <Text style={[styles.resultLabel, isDarkMode && styles.darkText]}>
+                Результат:
+              </Text>
+              <Text style={[styles.resultText, isDarkMode && styles.darkText]}>
+                {result}
+              </Text>
+            </View>
+          )}
+
+          {/* Информация о модуле */}
+          {moduleInfo !== '' && (
+            <View
+              style={[
+                styles.infoContainer,
+                isDarkMode && styles.darkInfoContainer,
+              ]}
+            >
+              <Text style={[styles.infoText, isDarkMode && styles.darkText]}>
+                {moduleInfo}
+              </Text>
+            </View>
+          )}
+
+          {/* Описание */}
+          <View style={styles.descriptionContainer}>
+            <Text
+              style={[styles.descriptionTitle, isDarkMode && styles.darkText]}
+            >
+              Типы методов:
             </Text>
-            <Text style={[styles.resultText, isDarkMode && styles.darkText]}>
-              {result}
+            <Text
+              style={[styles.descriptionText, isDarkMode && styles.darkText]}
+            >
+              • <Text style={styles.bold}>Асинхронные (Promise)</Text>: add,
+              multiply, factorial используют async/await
+            </Text>
+            <Text
+              style={[styles.descriptionText, isDarkMode && styles.darkText]}
+            >
+              • <Text style={styles.bold}>Callback</Text>: squareRoot передаёт
+              результат через функцию
+            </Text>
+            <Text
+              style={[styles.descriptionText, isDarkMode && styles.darkText]}
+            >
+              • <Text style={styles.bold}>Синхронные</Text>: getModuleInfo
+              возвращает строку сразу
             </Text>
           </View>
-        )}
+        </ScrollView>
 
-        {/* Информация о модуле */}
-        {moduleInfo !== '' && (
-          <View
-            style={[
-              styles.infoContainer,
-              isDarkMode && styles.darkInfoContainer,
-            ]}
-          >
-            <Text style={[styles.infoText, isDarkMode && styles.darkText]}>
-              {moduleInfo}
-            </Text>
-          </View>
+        {/* WebView Modal */}
+        {showWebView && (
+          <SafeAreaView style={styles.webViewModal}>
+            <View style={styles.webViewHeader}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={closeWebView}
+              >
+                <Text style={styles.closeButtonText}>✕ Закрыть</Text>
+              </TouchableOpacity>
+            </View>
+            <OptimizedWebView
+              url={webViewUrl}
+              title="WebView"
+              onNavigationStateChange={navState => {
+                console.log('Navigation state changed:', navState);
+              }}
+              onError={error => {
+                console.error('WebView error:', error);
+                Alert.alert('Ошибка WebView', 'Не удалось загрузить страницу');
+              }}
+              onLoadEnd={() => {
+                console.log('WebView loaded successfully');
+              }}
+              style={styles.webViewContainer}
+            />
+          </SafeAreaView>
         )}
-
-        {/* Описание */}
-        <View style={styles.descriptionContainer}>
-          <Text
-            style={[styles.descriptionTitle, isDarkMode && styles.darkText]}
-          >
-            Типы методов:
-          </Text>
-          <Text style={[styles.descriptionText, isDarkMode && styles.darkText]}>
-            • <Text style={styles.bold}>Асинхронные (Promise)</Text>: add,
-            multiply, factorial используют async/await
-          </Text>
-          <Text style={[styles.descriptionText, isDarkMode && styles.darkText]}>
-            • <Text style={styles.bold}>Callback</Text>: squareRoot передаёт
-            результат через функцию
-          </Text>
-          <Text style={[styles.descriptionText, isDarkMode && styles.darkText]}>
-            • <Text style={styles.bold}>Синхронные</Text>: getModuleInfo
-            возвращает строку сразу
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -365,6 +448,60 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: 'bold',
+  },
+  // WebView стили
+  webViewSection: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  webViewButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  webViewButton: {
+    flex: 1,
+    minWidth: '30%',
+    backgroundColor: '#FF6B6B',
+  },
+  webViewModal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fff',
+    zIndex: 1000,
+  },
+  webViewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 15,
+    backgroundColor: '#f8f9fa',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  closeButton: {
+    backgroundColor: '#dc3545',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  webViewContainer: {
+    flex: 1,
   },
 });
 
