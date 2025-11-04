@@ -4,35 +4,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
 import TestScreen from '../screens/TestScreen';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { HomeTabIcon, TestTabIcon } from '../../shared/ui/tab-icons';
 
 const Tab = createBottomTabNavigator<TabParamList>();
-
-function HomeTabIcon({
-  color,
-  size,
-  focused,
-}: {
-  color: string;
-  size: number;
-  focused: boolean;
-}) {
-  const name = focused ? 'home-variant' : 'home-variant-outline';
-  return <MaterialCommunityIcons name={name} size={size} color={color} />;
-}
-
-function TestTabIcon({
-  color,
-  size,
-  focused,
-}: {
-  color: string;
-  size: number;
-  focused: boolean;
-}) {
-  const name = focused ? 'flask' : 'flask-outline';
-  return <MaterialCommunityIcons name={name} size={size} color={color} />;
-}
 
 export default function RootTabs() {
   return (
