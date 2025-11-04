@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "249075503615",
+    "project_id": "matthew3dgnewarctest",
+    "storage_bucket": "matthew3dgnewarctest.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:249075503615:android:d06c8eb12cb2e7980e17ca",
+        "android_client_info": {
+          "package_name": "com.matthew3dgnewarctest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiVOw9-VLiTN4u2LLH1Dy13dAo-if7jAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

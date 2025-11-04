@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -25,6 +25,9 @@ import NativeCalculator from './specs/NativeCalculator';
 import OptimizedWebView from './src/components/OptimizedWebView';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
+// Импортируем сервис push уведомлений
+import pushNotificationService from './src/services/PushNotificationService';
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [num1, setNum1] = useState('5');
@@ -33,6 +36,49 @@ function App() {
   const [moduleInfo, setModuleInfo] = useState('');
   const [showWebView, setShowWebView] = useState(false);
   const [webViewUrl, setWebViewUrl] = useState('https://reactnative.dev');
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
+  const [notificationStatus, setNotificationStatus] =
+    useState<string>('Инициализация...');
+
+  // Инициализация push уведомлений
+  useEffect(() => {
+    const initializePushNotifications = async () => {
+      try {
+        setNotificationStatus('Инициализация push уведомлений...');
+
+        await pushNotificationService.initialize();
+
+        // Настраиваем обработчики
+        pushNotificationService.onTokenRefresh(token => {
+          setFcmToken(token);
+          setNotificationStatus('Push уведомления активны');
+          console.log('FCM Token updated:', token);
+        });
+
+        pushNotificationService.onNotificationReceived(remoteMessage => {
+          console.log('Notification received in foreground:', remoteMessage);
+          setNotificationStatus('Получено уведомление в foreground');
+        });
+
+        pushNotificationService.onNotificationOpened(remoteMessage => {
+          console.log('Notification opened:', remoteMessage);
+          setNotificationStatus('Уведомление открыто');
+        });
+
+        // Получаем текущий токен
+        const token = pushNotificationService.getToken();
+        if (token) {
+          setFcmToken(token);
+          setNotificationStatus('Push уведомления активны');
+        }
+      } catch (error) {
+        console.error('Failed to initialize push notifications:', error);
+        setNotificationStatus('Ошибка инициализации push уведомлений');
+      }
+    };
+
+    initializePushNotifications();
+  }, []);
 
   // Тест метода add (теперь асинхронный)
   // const testAdd = async () => {
@@ -108,6 +154,35 @@ function App() {
 
   const closeWebView = () => {
     setShowWebView(false);
+  };
+
+  // Функции для работы с push уведомлениями
+  const copyFCMToken = () => {
+    if (fcmToken) {
+      // В реальном приложении здесь можно использовать Clipboard API
+      Alert.alert('FCM Token', fcmToken, [{ text: 'OK' }]);
+    } else {
+      Alert.alert('Ошибка', 'FCM токен не получен');
+    }
+  };
+
+  const subscribeToTestTopic = async () => {
+    try {
+      await pushNotificationService.subscribeToTopic('test');
+      Alert.alert('Успех', 'Подписка на топик "test" выполнена');
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось подписаться на топик');
+    }
+  };
+
+  const checkNotificationPermission = async () => {
+    const hasPermission = await pushNotificationService.hasPermission();
+    Alert.alert(
+      'Разрешения',
+      hasPermission
+        ? 'Push уведомления разрешены'
+        : 'Push уведомления запрещены',
+    );
   };
 
   return (
@@ -190,6 +265,47 @@ function App() {
             >
               <Text style={styles.buttonText}>ℹ️ Информация о модуле</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Push Notifications Section */}
+          <View style={styles.pushNotificationSection}>
+            <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>
+              🔔 Push Уведомления
+            </Text>
+
+            <View
+              style={[
+                styles.statusContainer,
+                isDarkMode && styles.darkStatusContainer,
+              ]}
+            >
+              <Text style={[styles.statusText, isDarkMode && styles.darkText]}>
+                Статус: {notificationStatus}
+              </Text>
+            </View>
+
+            <View style={styles.pushNotificationButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.pushButton]}
+                onPress={copyFCMToken}
+              >
+                <Text style={styles.buttonText}>📋 Показать FCM Token</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.button, styles.pushButton]}
+                onPress={subscribeToTestTopic}
+              >
+                <Text style={styles.buttonText}>📢 Подписаться на "test"</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.button, styles.pushButton]}
+                onPress={checkNotificationPermission}
+              >
+                <Text style={styles.buttonText}>🔐 Проверить разрешения</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* WebView кнопки */}
@@ -502,6 +618,40 @@ const styles = StyleSheet.create({
   },
   webViewContainer: {
     flex: 1,
+  },
+  // Push Notifications стили
+  pushNotificationSection: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  statusContainer: {
+    backgroundColor: '#E8F5E8',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  darkStatusContainer: {
+    backgroundColor: '#2a2a2a',
+    borderColor: '#4CAF50',
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#2E7D32',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  pushNotificationButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  pushButton: {
+    flex: 1,
+    minWidth: '30%',
+    backgroundColor: '#9C27B0',
   },
 });
 
